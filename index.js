@@ -9,48 +9,62 @@ const fs = require('fs');
 
 const searchParam = argv.s;
 const apiKey = argv.api;
+class EasyGifSelector {
+  constructor(height, width) {
+    this.prepareTemplate();
+    this.startServer();
+    this.loadGifs();
+  }
 
-client = GphApiClient(apiKey)
+  prepareTemplate() {
+    fs.copyFileSync('template.html', 'index.html')
+  }
 
-fs.copyFileSync('template.html', 'index.html')
+  startServer() {
+    const app = express()
 
-var app = express()
+    app.get('/', function (req, res) {
+      res.sendFile(path.join(__dirname + '/index.html'));
+    })
 
-app.get('/', function (req, res) {
-    res.sendFile(path.join(__dirname + '/index.html'));
-})
+    app.listen(12345)
+  }
 
-app.listen(12345)
+  loadGifs() {
+    const giphyClient = GphApiClient(apiKey)
 
-console.log('Loading GIFs... 🙏🏻');
+    console.log('Loading GIFs... 🙏🏻');
 
-client.search('gifs', {'q': searchParam})
-  .then((response) => {
-      console.log('GIFs loaded 😎');
-      let gifList = response.data;
-      let imageHtml = '';
+    giphyClient.search('gifs', {'q': searchParam})
+      .then((response) => {
+          console.log('GIFs loaded 😎');
+          let gifList = response.data;
+          let imageHtml = '';
 
-      gifList.forEach(gif => {
-          const url = gif.images.original.gif_url;
-          const previewUrl = gif.images.fixed_width_downsampled.gif_url;
-            imageHtml += `<button class="btn" data-clipboard-text="${url}"><img class="gifimg" src="${previewUrl}"></button>`;
-      });
+          // build images
+          gifList.forEach(gif => {
+              const url = gif.images.original.gif_url;
+              const previewUrl = gif.images.fixed_width_downsampled.gif_url;
+                imageHtml += `<button class="btn" data-clipboard-text="${url}"><img class="gifimg" src="${previewUrl}"></button>`;
+          });
 
-      const options = {
-        files: path.join(__dirname + '/index.html'),
-        from: /##content##/g,
-        to: imageHtml,
-      };
+          // put images into template
+          replace.sync({
+            files: path.join(__dirname + '/index.html'),
+            from: /##content##/g,
+            to: imageHtml,
+          });
 
-      replace.sync(options);
+          opn('http://localhost:12345');
 
-      opn('http://localhost:12345');
+          setTimeout(() => {
+            process.exit();
+          }, 3000);
+      })
+      .catch((err) => {
+        console.log('Somethin went wrong 😩');
+      })
+  }
+}
 
-      setTimeout(() => {
-        process.exit();
-      }, 2000);
-
-  })
-  .catch((err) => {
-
-  })
+new EasyGifSelector();
