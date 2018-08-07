@@ -5,6 +5,6 @@
 2. Install it: `cd easy-gif-selector && yarn`
 3. Get your Giphy-Api-Key: https://developers.giphy.com/dashboard/?create=true
 4. Run this thing: `yarn start --api YOUR-API-KEY -s cat`
-5. Watch your browser
+5. Watch, what your browser is doing :)
 6. Click your favourite gif to copy the URL
 7. kkthxbye
